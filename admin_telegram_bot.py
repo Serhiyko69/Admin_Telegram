@@ -11,7 +11,7 @@ storage = MemoryStorage()
 bot = Bot(TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
-# Отримайте ID вашої групи
+#ID вашої групи
 GROUP_ID = -970835123
 
 
@@ -133,11 +133,32 @@ async def process_minute_input(message: types.Message, state: FSMContext):
     )
     await message.answer(response)
 
-    # Опублікуємо повідомлення у групі
+    # Створення кнопки для додавання ідентифікатора користувача в базу даних
+    join_button = types.InlineKeyboardButton("Приєднатися", callback_data=user_id)
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(join_button)
+
+    # Опублікувати повідомлення у групі з кнопкою
     post_message = f"Нова зустріч: {formatted_date_time} у {selected_city}, {selected_region} область"
-    await bot.send_message(GROUP_ID, post_message)
+    await bot.send_message(GROUP_ID, post_message, reply_markup=keyboard)
 
     await state.finish()
+
+
+# Обробник натискання на кнопку "Приєднатися"
+@dp.callback_query_handler(lambda callback_query: True)
+async def join_meeting(callback_query: types.CallbackQuery, state: FSMContext):
+    user_id = callback_query.from_user.id
+
+    # Додати код для збереження user_id в базу даних тут
+    doc = {
+        "add_user": user_id
+    }
+    collection.insert_one(doc)
+    await bot.answer_callback_query(callback_query.id, text="Ви приєднались до зустрічі!")
+
+
+# Решта коду незмінна
 
 # Функція-запуск при старті
 async def on_startup(_):
