@@ -20,6 +20,23 @@ GROUP_ID = -970835123
 async def start_def(message: types.Message):
     await message.answer('Привіт, що хочеш зробити?', reply_markup=kb_client)
 
+# Обробник натискання на кнопку "Активні зустрічі"
+@dp.message_handler(text=['Переглянути активні зустрічі'])
+async def active_meetings(message: types.Message):
+    user_id = message.from_user.id
+
+    # Отримати активні зустрічі користувача з бази даних
+    active_meetings = collection.find({"user_id": user_id})
+
+    if active_meetings:
+        response = "Ваші активні зустрічі:\n"
+        for meeting in active_meetings:
+            response += f"Зустріч у місті {meeting['city']}, {meeting['region']} область, Дата: {meeting['datetime']}\n"
+    else:
+        response = "Наразі у вас немає активних зустрічей."
+
+    await message.answer(response)
+
 
 @dp.message_handler(text=['Створити зустріч'])
 async def start_def(message: types.Message):
